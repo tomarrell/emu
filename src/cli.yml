@@ -1,0 +1,14 @@
+name: blog
+version: "1.0"
+author: Tom A. <tom.arrell@gmail.com>
+about: Manage project .env files
+args:
+  - store:
+      short: s
+      long: store
+      value_name: FILE
+      help: Use a custom store file
+      takes_value: true
+subcommands:
+  - init:
+      help: Initialize the current directory as a new project to manage .env for
