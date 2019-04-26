@@ -1,18 +1,35 @@
-use dirs;
-use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use std::fmt;
 use std::fs;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
-#[derive(Debug, Deserialize, Serialize)]
-struct Project {
-    vars: BTreeMap<String, String>,
+use dirs;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct Project {
+    pub vars: BTreeMap<String, String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+impl fmt::Display for Project {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if self.vars.len() == 0 {
+            write!(f, "No vars yet for this project").expect("Failed to write to formatter");
+            return Ok(());
+        }
+
+        for (key, value) in self.vars.iter() {
+            write!(f, "{} = {}", key, value).expect("Failed to write project variable");
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
 struct StoreFile {
-    projects: BTreeMap<String, Project>,
+    projects: BTreeMap<PathBuf, Project>,
 }
 
 #[derive(Debug)]
@@ -22,7 +39,7 @@ pub struct Store {
     path: PathBuf,
 }
 
-impl Store{
+impl Store {
     pub fn open(path: &Path) -> Store {
         let path = dirs::home_dir().expect("No home directory set").join(path);
 
@@ -43,9 +60,11 @@ impl Store{
         let store_file: StoreFile = match toml::from_str(&buffer) {
             Ok(f) => f,
             Err(_) => {
-                eprintln!("Error: Failed to parse config file. Please check that it is valid TOML.");
+                eprintln!(
+                    "Error: Failed to parse config file. Please check that it is valid TOML."
+                );
                 std::process::exit(1);
-            },
+            }
         };
 
         Store {
@@ -55,6 +74,25 @@ impl Store{
         }
     }
 
+    pub fn add_project(&mut self, name: &PathBuf) -> Result<(), &str> {
+        let new_project = Project {
+            vars: BTreeMap::new(),
+        };
+
+        if self.store.projects.contains_key(name) {
+            return Err("Key already exists in project list");
+        }
+
+        self.store
+            .projects
+            .insert(name.clone(), new_project.clone());
+        Ok(self.write_projects())
+    }
+
+    pub fn get_project(&self, name: &PathBuf) -> Option<&Project> {
+        self.store.projects.get(name)
+    }
+
     fn create(path: &Path) -> Store {
         let mut file = fs::OpenOptions::new()
             .write(true)
@@ -62,7 +100,9 @@ impl Store{
             .open(path.clone())
             .expect("Failed to create store file");
 
-        let _ = file.write_all(b"projects:");
+        let _ = file.write_all(
+            &toml::to_vec(&StoreFile::default()).expect("Failed to serialize default StoreFile"),
+        );
 
         let sf = StoreFile {
             projects: BTreeMap::new(),
@@ -73,5 +113,11 @@ impl Store{
             file: file,
             path: path.to_path_buf(),
         }
+    }
+
+    fn write_projects(&mut self) -> () {
+        self.file
+            .write_all(&toml::to_vec(&self.store).expect("Failed to serialize store for write"))
+            .expect("Failed to write to disk, some data may be lost!")
     }
 }

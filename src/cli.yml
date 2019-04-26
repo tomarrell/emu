@@ -11,4 +11,13 @@ args:
       takes_value: true
 subcommands:
   - init:
-      help: Initialize the current directory as a new project to manage .env for
+      about: Initialize the current directory as a new project to manage .env for
+  - show: 
+      about: Show a list of vars for the current project
+      args:
+        - projects:
+            short: p
+            long: projects
+            takes_value: false
+            help: Show vars for all projects, not just the current one
+          
