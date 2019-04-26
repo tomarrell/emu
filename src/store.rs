@@ -20,7 +20,7 @@ impl fmt::Display for Project {
         }
 
         for (key, value) in self.vars.iter() {
-            write!(f, "{} = {}", key, value).expect("Failed to write project variable");
+            write!(f, "{} = {}\n", key, value).expect("Failed to write project variable");
         }
 
         Ok(())
@@ -93,6 +93,16 @@ impl Store {
         self.store.projects.get(name)
     }
 
+    pub fn set_var(&mut self, proj_name: &PathBuf, pair: &(&str, &str)) -> Result<(), ()> {
+        let proj = match self.store.projects.get_mut(proj_name) {
+            Some(proj) => proj,
+            None => return Err(()),
+        };
+
+        proj.vars.insert(pair.0.to_string(), pair.1.to_string());
+        Ok(self.write_projects())
+    }
+
     fn create(path: &Path) -> Store {
         let mut file = fs::OpenOptions::new()
             .write(true)
@@ -116,8 +126,14 @@ impl Store {
     }
 
     fn write_projects(&mut self) -> () {
-        self.file
-            .write_all(&toml::to_vec(&self.store).expect("Failed to serialize store for write"))
-            .expect("Failed to write to disk, some data may be lost!")
+        let bytes = &toml::to_vec(&self.store).expect("Failed to serialize store for write");
+
+        fs::OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .open(&self.path)
+            .expect("Failed to open config file")
+            .write_all(bytes)
+            .expect("Failed to write to disk, some data may be lost!");
     }
 }

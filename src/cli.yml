@@ -1,4 +1,4 @@
-name: blog
+name: emu
 version: "1.0"
 author: Tom A. <tom.arrell@gmail.com>
 about: Manage project .env files
@@ -30,7 +30,7 @@ subcommands:
   - write:
       about: Write the env variables out to a file in the current project
       args:
-        - file
+        - file:
             short: f
             long: file
             help: The file name to write out to

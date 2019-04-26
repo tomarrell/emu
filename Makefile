@@ -8,3 +8,6 @@ run:
 
 watch:
 	watch -n 1 bat ~/.emu.toml
+
+install:
+	cargo install --path . -f
