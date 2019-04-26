@@ -45,12 +45,10 @@ fn main() {
     let yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(yaml).get_matches();
 
-    let store_path = match matches.value_of("store") {
-        Some(s) => Path::new(s),
-        None => Path::new(CONFIG_PATH),
+    let mut store = match matches.value_of("store") {
+        Some(s) => store::Store::open(Path::new(s), false),
+        None => store::Store::open(Path::new(CONFIG_PATH), true),
     };
-
-    let mut store = store::Store::open(store_path);
 
     match matches.subcommand() {
         ("init", Some(_sub_m)) => init_project(&mut store),

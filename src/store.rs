@@ -40,8 +40,12 @@ pub struct Store {
 }
 
 impl Store {
-    pub fn open(path: &Path) -> Store {
-        let path = dirs::home_dir().expect("No home directory set").join(path);
+    pub fn open(path: &Path, from_home: bool) -> Store {
+        let path: PathBuf = if from_home {
+            dirs::home_dir().expect("No home directory set").join(path)
+        } else {
+            path.to_path_buf()
+        };
 
         if !path.exists() {
             return Store::create(&path);
@@ -70,7 +74,7 @@ impl Store {
         Store {
             store: store_file,
             file: file,
-            path,
+            path: path.to_path_buf(),
         }
     }
 
