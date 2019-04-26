@@ -20,4 +20,17 @@ subcommands:
             long: projects
             takes_value: false
             help: Show vars for all projects, not just the current one
-          
+  - set:
+      about: Add a new var to the project
+      args:
+        - var:
+            help: A key value pair in the form of key=value
+            required: true
+            index: 1
+  - write:
+      about: Write the env variables out to a file in the current project
+      args:
+        - file
+            short: f
+            long: file
+            help: The file name to write out to

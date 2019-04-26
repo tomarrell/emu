@@ -15,7 +15,6 @@ fn init_project(store: &mut store::Store) {
         Ok(_) => println!("Successfully created new project: {}", utils::lossy(&project_name)),
         Err(e) => println!("{}", e),
     }
-
 }
 
 fn show_vars(store: &mut store::Store) {
@@ -32,6 +31,10 @@ fn show_vars_all(store: &mut store::Store) {
     unimplemented!()
 }
 
+fn set_var(store: &mut store::Store) {
+    unimplemented!()
+}
+
 fn main() {
     let yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(yaml).get_matches();
@@ -45,6 +48,12 @@ fn main() {
 
     match matches.subcommand() {
         ("init", Some(_sub_m)) => init_project(&mut store),
+        ("set", Some(sub_m)) => {
+            if let Some(pair) = sub_m.value_of("var") {
+                println!("{}", pair);
+                set_var(&mut store);
+            }
+        },
         ("show", Some(sub_m)) => {
             if sub_m.is_present("projects") {
                 show_vars_all(&mut store)
